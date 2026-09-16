@@ -8,7 +8,9 @@ plugins {
 android {
     namespace = "com.example.calculator_app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // google_mobile_ads and other plugins require NDK 27+; Flutter's
+    // default (flutter.ndkVersion) can lag behind that.
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
