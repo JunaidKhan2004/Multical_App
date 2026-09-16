@@ -14,8 +14,8 @@ class AdService {
   static const _testBannerAndroid = 'ca-app-pub-3940256099942544/6300978111';
   static const _testBannerIOS = 'ca-app-pub-3940256099942544/2934735716';
 
-  // TODO: replace with your real AdMob banner ad unit IDs before release.
-  static const _prodBannerAndroid = 'ca-app-pub-3940256099942544/6300978111';
+  static const _prodBannerAndroid = 'ca-app-pub-5701334230119067/7721555767';
+  // TODO: replace with your real iOS AdMob banner ad unit ID before release.
   static const _prodBannerIOS = 'ca-app-pub-3940256099942544/2934735716';
 
   static Future<void> init() => MobileAds.instance.initialize();
