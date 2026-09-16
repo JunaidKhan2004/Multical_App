@@ -2,11 +2,13 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-/// Initializes the Mobile Ads SDK and hands out banner ad unit IDs.
+/// Initializes the Mobile Ads SDK, hands out the banner ad unit ID, and
+/// manages a preloaded interstitial shown every [_interstitialEvery]th call
+/// to [maybeShowInterstitial].
 ///
 /// Uses Google's public TEST ad unit IDs in debug builds so development
 /// never serves (and never accidentally clicks) real ads — swap the
-/// `_prodBannerAndroid`/`_prodBannerIOS` constants for your own AdMob unit
+/// `_prodBanner*`/`_prodInterstitial*` constants for your own AdMob unit
 /// IDs before a release build.
 class AdService {
   AdService._();
@@ -18,7 +20,28 @@ class AdService {
   // TODO: replace with your real iOS AdMob banner ad unit ID before release.
   static const _prodBannerIOS = 'ca-app-pub-3940256099942544/2934735716';
 
-  static Future<void> init() => MobileAds.instance.initialize();
+  static const _testInterstitialAndroid =
+      'ca-app-pub-3940256099942544/1033173712';
+  static const _testInterstitialIOS =
+      'ca-app-pub-3940256099942544/4411468910';
+
+  static const _prodInterstitialAndroid =
+      'ca-app-pub-5701334230119067/4941058764';
+  // TODO: replace with your real iOS AdMob interstitial ad unit ID before release.
+  static const _prodInterstitialIOS =
+      'ca-app-pub-3940256099942544/4411468910';
+
+  /// Show an interstitial on every Nth call to [maybeShowInterstitial].
+  static const _interstitialEvery = 3;
+
+  static int _navCount = 0;
+  static InterstitialAd? _interstitial;
+  static bool _loadingInterstitial = false;
+
+  static Future<void> init() async {
+    await MobileAds.instance.initialize();
+    _loadInterstitial();
+  }
 
   static String get bannerAdUnitId {
     final useTest = kDebugMode;
@@ -29,5 +52,58 @@ class AdService {
       return useTest ? _testBannerIOS : _prodBannerIOS;
     }
     throw UnsupportedError('Ads are only supported on Android and iOS');
+  }
+
+  static String get _interstitialAdUnitId {
+    final useTest = kDebugMode;
+    if (Platform.isAndroid) {
+      return useTest ? _testInterstitialAndroid : _prodInterstitialAndroid;
+    }
+    if (Platform.isIOS) {
+      return useTest ? _testInterstitialIOS : _prodInterstitialIOS;
+    }
+    throw UnsupportedError('Ads are only supported on Android and iOS');
+  }
+
+  static void _loadInterstitial() {
+    if (_loadingInterstitial || _interstitial != null) return;
+    _loadingInterstitial = true;
+    InterstitialAd.load(
+      adUnitId: _interstitialAdUnitId,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          _loadingInterstitial = false;
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) {
+              ad.dispose();
+              _interstitial = null;
+              _loadInterstitial();
+            },
+            onAdFailedToShowFullScreenContent: (ad, error) {
+              ad.dispose();
+              _interstitial = null;
+              _loadInterstitial();
+            },
+          );
+          _interstitial = ad;
+        },
+        onAdFailedToLoad: (error) {
+          _loadingInterstitial = false;
+        },
+      ),
+    );
+  }
+
+  /// Call at a natural navigation break (e.g. opening a calculator from the
+  /// home grid). Shows the preloaded interstitial every [_interstitialEvery]
+  /// calls; a no-op (and doesn't consume the count) if none is loaded yet.
+  static void maybeShowInterstitial() {
+    _navCount++;
+    if (_navCount % _interstitialEvery != 0) return;
+    final ad = _interstitial;
+    if (ad == null) return;
+    _interstitial = null;
+    ad.show();
   }
 }

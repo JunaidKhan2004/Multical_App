@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/ad_service.dart';
 import '../theme/app_theme.dart';
 import 'calc_screens.dart';
 import 'history_screen.dart';
@@ -95,6 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _open(int index) {
+    AdService.maybeShowInterstitial();
     final screen = buildCalcScreen(
       index,
       isDark: _isDark,
