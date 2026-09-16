@@ -17,7 +17,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _isDark = false;
+  late bool _isDark = widget.isDark;
   bool _haptic = true;
   bool _liveCalc = true;
   int _historyLimit = 100;

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/app_settings.dart';
 import '../theme/app_theme.dart';
+import '../widgets/banner_ad_bar.dart';
 import '../widgets/brut_widgets.dart';
 
 class DiscountScreen extends StatefulWidget {
@@ -141,6 +142,7 @@ class _DiscountScreenState extends State<DiscountScreen> {
 
     return Scaffold(
       backgroundColor: bg,
+      bottomNavigationBar: BannerAdBar(isDark: widget.isDark),
       body: SafeArea(
         child: Column(
           children: [

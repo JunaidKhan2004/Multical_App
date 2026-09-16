@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
+import '../widgets/banner_ad_bar.dart';
 import '../widgets/brut_widgets.dart';
 
 class StatisticsScreen extends StatefulWidget {
@@ -54,6 +55,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
     return Scaffold(
       backgroundColor: bg,
+      bottomNavigationBar: BannerAdBar(isDark: widget.isDark),
       body: SafeArea(
         child: Column(
           children: [

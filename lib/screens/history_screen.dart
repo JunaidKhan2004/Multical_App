@@ -142,7 +142,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   final time = _formatTime(item.timestamp);
                   return InkWell(
                     onTap: () {
-                      widget.onRecall(item.result);
+                      widget.onRecall(item.expression);
                       Navigator.pop(context);
                     },
                     child: Container(

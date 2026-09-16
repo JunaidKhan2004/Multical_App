@@ -6,6 +6,7 @@ import '../logic/calculator_logic.dart';
 import '../services/app_settings.dart';
 import '../services/history_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/banner_ad_bar.dart';
 import '../widgets/calc_button.dart';
 import 'history_screen.dart';
 import 'navigation.dart';
@@ -147,6 +148,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       data: widget.isDark ? AppTheme.dark : AppTheme.light,
       child: Scaffold(
         backgroundColor: bg,
+        bottomNavigationBar: BannerAdBar(isDark: widget.isDark),
         body: SafeArea(
           child: Column(
             children: [
