@@ -16,7 +16,7 @@ class AdService {
   static const _testBannerAndroid = 'ca-app-pub-3940256099942544/6300978111';
   static const _testBannerIOS = 'ca-app-pub-3940256099942544/2934735716';
 
-  static const _prodBannerAndroid = 'ca-app-pub-5701334230119067/7721555767';
+  static const _prodBannerAndroid = 'ca-app-pub-5701334230119067/3681384770';
   // TODO: replace with your real iOS AdMob banner ad unit ID before release.
   static const _prodBannerIOS = 'ca-app-pub-3940256099942544/2934735716';
 
@@ -34,9 +34,17 @@ class AdService {
   /// Show an interstitial on every Nth call to [maybeShowInterstitial].
   static const _interstitialEvery = 3;
 
+  static const _maxLoadRetries = 3;
+  static const _retryDelays = [
+    Duration(seconds: 5),
+    Duration(seconds: 15),
+    Duration(seconds: 30),
+  ];
+
   static int _navCount = 0;
   static InterstitialAd? _interstitial;
   static bool _loadingInterstitial = false;
+  static int _loadAttempt = 0;
 
   static Future<void> init() async {
     await MobileAds.instance.initialize();
@@ -74,6 +82,7 @@ class AdService {
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
           _loadingInterstitial = false;
+          _loadAttempt = 0;
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (ad) {
               ad.dispose();
@@ -90,6 +99,16 @@ class AdService {
         },
         onAdFailedToLoad: (error) {
           _loadingInterstitial = false;
+          // NO_FILL and transient network errors are common and usually
+          // resolve on their own — retry a few times with backoff before
+          // giving up until the next natural reload trigger.
+          if (_loadAttempt < _maxLoadRetries) {
+            final delay = _retryDelays[_loadAttempt];
+            _loadAttempt++;
+            Future.delayed(delay, _loadInterstitial);
+          } else {
+            _loadAttempt = 0;
+          }
         },
       ),
     );

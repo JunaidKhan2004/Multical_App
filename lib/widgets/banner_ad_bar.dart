@@ -16,8 +16,16 @@ class BannerAdBar extends StatefulWidget {
 }
 
 class _BannerAdBarState extends State<BannerAdBar> {
+  static const _maxRetries = 3;
+  static const _retryDelays = [
+    Duration(seconds: 5),
+    Duration(seconds: 15),
+    Duration(seconds: 30),
+  ];
+
   BannerAd? _ad;
   bool _failed = false;
+  int _attempt = 0;
 
   @override
   void initState() {
@@ -41,7 +49,18 @@ class _BannerAdBarState extends State<BannerAdBar> {
         onAdFailedToLoad: (ad, error) {
           ad.dispose();
           if (!mounted) return;
-          setState(() => _failed = true);
+          // NO_FILL and transient network errors are common and usually
+          // resolve on their own — retry a few times with backoff before
+          // giving up and hiding the bar for this screen instance.
+          if (_attempt < _maxRetries) {
+            final delay = _retryDelays[_attempt];
+            _attempt++;
+            Future.delayed(delay, () {
+              if (mounted) _load();
+            });
+          } else {
+            setState(() => _failed = true);
+          }
         },
       ),
     ).load();
