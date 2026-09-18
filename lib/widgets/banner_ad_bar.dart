@@ -48,6 +48,10 @@ class _BannerAdBarState extends State<BannerAdBar> {
         },
         onAdFailedToLoad: (ad, error) {
           ad.dispose();
+          debugPrint(
+            'BannerAd failed: code=${error.code} domain=${error.domain} '
+            'message=${error.message} cause=${error.responseInfo}',
+          );
           if (!mounted) return;
           // NO_FILL and transient network errors are common and usually
           // resolve on their own — retry a few times with backoff before

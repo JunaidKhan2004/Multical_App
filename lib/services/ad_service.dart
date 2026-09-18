@@ -16,7 +16,7 @@ class AdService {
   static const _testBannerAndroid = 'ca-app-pub-3940256099942544/6300978111';
   static const _testBannerIOS = 'ca-app-pub-3940256099942544/2934735716';
 
-  static const _prodBannerAndroid = 'ca-app-pub-5701334230119067/3681384770';
+  static const _prodBannerAndroid = 'ca-app-pub-5701334230119067/8857991153';
   // TODO: replace with your real iOS AdMob banner ad unit ID before release.
   static const _prodBannerIOS = 'ca-app-pub-3940256099942544/2934735716';
 
@@ -26,13 +26,17 @@ class AdService {
       'ca-app-pub-3940256099942544/4411468910';
 
   static const _prodInterstitialAndroid =
-      'ca-app-pub-5701334230119067/4941058764';
+      'ca-app-pub-5701334230119067/2292582809';
   // TODO: replace with your real iOS AdMob interstitial ad unit ID before release.
   static const _prodInterstitialIOS =
       'ca-app-pub-3940256099942544/4411468910';
 
   /// Show an interstitial on every Nth call to [maybeShowInterstitial].
   static const _interstitialEvery = 3;
+
+  // TEMPORARY: force real ad unit IDs in debug builds to test the new
+  // AdMob ad units. Set back to false before normal development.
+  static const _forceProdAdsInDebug = true;
 
   static const _maxLoadRetries = 3;
   static const _retryDelays = [
@@ -46,13 +50,24 @@ class AdService {
   static bool _loadingInterstitial = false;
   static int _loadAttempt = 0;
 
+  // Real device IDs seen in "Use RequestConfiguration.Builder()..." log
+  // lines. Registering them as test devices makes AdMob serve real test
+  // ads to them even while this AdMob account/app is otherwise restricted
+  // (e.g. pending app-store listing verification).
+  static const _testDeviceIds = ['1C9A421D63A6A9C24BB216AC77FEEF5C'];
+
   static Future<void> init() async {
+    if (kDebugMode) {
+      await MobileAds.instance.updateRequestConfiguration(
+        RequestConfiguration(testDeviceIds: _testDeviceIds),
+      );
+    }
     await MobileAds.instance.initialize();
     _loadInterstitial();
   }
 
   static String get bannerAdUnitId {
-    final useTest = kDebugMode;
+    final useTest = kDebugMode && !_forceProdAdsInDebug;
     if (Platform.isAndroid) {
       return useTest ? _testBannerAndroid : _prodBannerAndroid;
     }
@@ -63,7 +78,7 @@ class AdService {
   }
 
   static String get _interstitialAdUnitId {
-    final useTest = kDebugMode;
+    final useTest = kDebugMode && !_forceProdAdsInDebug;
     if (Platform.isAndroid) {
       return useTest ? _testInterstitialAndroid : _prodInterstitialAndroid;
     }
@@ -99,6 +114,10 @@ class AdService {
         },
         onAdFailedToLoad: (error) {
           _loadingInterstitial = false;
+          debugPrint(
+            'InterstitialAd failed: code=${error.code} domain=${error.domain} '
+            'message=${error.message}',
+          );
           // NO_FILL and transient network errors are common and usually
           // resolve on their own — retry a few times with backoff before
           // giving up until the next natural reload trigger.
